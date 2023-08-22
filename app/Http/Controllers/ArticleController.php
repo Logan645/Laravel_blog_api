@@ -126,15 +126,29 @@ class ArticleController extends Controller
     //detachTags
     public function detachTags(Article $article, ArticleTagsDetachRequest $request)
     {
-        $data= $request->validated();
-        $article ->tags()->detach($data['ids']);
-        return new ArticleResource($article);
+        try {
+            if (Gate::denies('update-article', $article)){
+                throw new AuthorizationException('You are not authorized to update this article!');
+            }
+            $tags = $request->input('tags');
+            $this->articleService->detachTags($article, $tags);
+            return $this->responseSuccess(null, 'Tags detached successfully!');
+        }catch(\Exception $e){
+            return $this->responseError(null, $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
     //syncTags
     public function syncTags(Article $article, ArticleTagSyncRequest $request)
     {
-        $data= $request->validated();
-        $article ->tags()->sync($data['ids']);
-        return new ArticleResource($article);
+        try {
+            if (Gate::denies('update-article', $article)){
+                throw new AuthorizationException('You are not authorized to update this article!');
+            }
+            $tags = $request->input('tags');
+            $this->articleService->syncTags($article, $tags);
+            return $this->responseSuccess(null, 'Tags synced successfully!');
+        }catch (\Exception $e){
+            return $this->responseError(null, $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

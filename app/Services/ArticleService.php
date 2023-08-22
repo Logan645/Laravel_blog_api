@@ -52,7 +52,7 @@ class ArticleService
         return $result;
     }
 
-    public function deleteArticle($articleId)
+    public function deleteArticle($articleId): void
     {
         $article = $this->articleRepository->find($articleId);
         if (!$article || $article->user_id != Auth::id()){
@@ -61,4 +61,18 @@ class ArticleService
         $this->articleRepository->delete($articleId);
     }
 
+    public function attachTags(Article $article, array $tags): void
+    {
+        $article->tags()->attach($tags);
+    }
+
+    public function detachTags(Article $article, array $tags): void
+    {
+        $article->tags()->detach($tags);
+    }
+
+    public function syncTags(Article $article, array $tags): void
+    {
+        $article->tags()->sync($tags);
+    }
 }

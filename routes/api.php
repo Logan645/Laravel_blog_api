@@ -33,7 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tags', [TagController::class, 'store']);
     Route::patch('/tags/{id}', [TagController::class, 'update']);
     Route::delete('/tags/{id}', [TagController::class, 'destroy']);
-    Route::post('/articles/{article}/tag.attach', [TagController::class, 'attachTags']);
+    Route::post('/articles/{article}/tag.attach', [ArticleController::class, 'attachTags']);
     Route::post('/articles/{article}/tag.detach', [TagController::class, 'detachTags']);
     Route::post('/articles/{article}/tag.sync', [TagController::class, 'syncTags']);
 

@@ -75,26 +75,4 @@ class TagController extends Controller
             return $this->responseError($e->getMessage(), 'deleted failed', Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
-
-    public function attachTags(Article $article, ArticleTagsAttachRequest $request)
-    {
-        $data= $request->validated();
-        $article ->tags()->attach($data['ids']);
-        return new ArticleResource($article);
-    }
-
-    //detachTags
-    public function detachTags(Article $article, ArticleTagsDetachRequest $request)
-    {
-        $data= $request->validated();
-        $article ->tags()->detach($data['ids']);
-        return new ArticleResource($article);
-    }
-    //syncTags
-    public function syncTags(Article $article, ArticleTagSyncRequest $request)
-    {
-        $data= $request->validated();
-        $article ->tags()->sync($data['ids']);
-        return new ArticleResource($article);
-    }
 }

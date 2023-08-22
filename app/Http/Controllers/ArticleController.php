@@ -5,20 +5,21 @@ namespace App\Http\Controllers;
 //記得載入要用的程式
 use App\Models\Article;
 use Illuminate\Http\Request;
+use App\Traits\ResponseTrait;
+use Illuminate\Http\Response;
+use App\Services\ArticleService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Gate;
 use App\Http\Resources\ArticleResource;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+// require 'vendor/autoload.php';
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Http\Requests\ArticleStoreRequest;
+use App\Http\Requests\ArticleUpdateRequest;
+use App\Http\Requests\ArticleTagSyncRequest;
 use App\Http\Requests\ArticleTagsAttachRequest;
 use App\Http\Requests\ArticleTagsDetachRequest;
-use App\Http\Requests\ArticleTagSyncRequest;
-use App\Http\Requests\ArticleUpdateRequest;
-use App\Traits\ResponseTrait;
-// require 'vendor/autoload.php';
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use App\Services\ArticleService;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
 
 class ArticleController extends Controller
 {
@@ -83,7 +84,6 @@ class ArticleController extends Controller
         }
 
     }
-
     //輸出成excel
     public function export()
     {
@@ -108,5 +108,33 @@ class ArticleController extends Controller
         $writer = new Xlsx($spreadsheet);
         $writer->save('articles.xlsx');
         return response()->download('articles.xlsx');
+    }
+
+    public function attachTags(Article $article, ArticleTagsAttachRequest $request)
+    {
+        try {
+            if (Gate::denies('update-article', $article)){
+                throw new AuthorizationException('You are not authorized to update this article!');
+            }
+            $tags = $request->input('tags');
+            $this->articleService->attachTags($article, $tags);
+            return $this->responseSuccess(null, 'Tags attached successfully!');
+        }catch (\Exception $e){
+            return $this->responseError(null, $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+    //detachTags
+    public function detachTags(Article $article, ArticleTagsDetachRequest $request)
+    {
+        $data= $request->validated();
+        $article ->tags()->detach($data['ids']);
+        return new ArticleResource($article);
+    }
+    //syncTags
+    public function syncTags(Article $article, ArticleTagSyncRequest $request)
+    {
+        $data= $request->validated();
+        $article ->tags()->sync($data['ids']);
+        return new ArticleResource($article);
     }
 }

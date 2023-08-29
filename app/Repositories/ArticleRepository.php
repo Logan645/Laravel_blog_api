@@ -6,8 +6,9 @@ use App\Models\Article;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use App\Helpers\UploadHelper;
-use HTMLPurifier_URIFilter_SafeIframe;
 use Illuminate\Support\Facades\Auth;
+use HTMLPurifier_URIFilter_SafeIframe;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Auth\Access\AuthorizationException;
 
@@ -23,6 +24,11 @@ class ArticleRepository
     public function getPaginate($perPage): Paginator
     {
         return $this->article->with('user', 'category')->latest()->paginate($perPage);
+    }
+
+    public function getAllArticles(): Collection
+    {
+        return Article::get();
     }
 
     public function find($articleId): Article

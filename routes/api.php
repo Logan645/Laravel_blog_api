@@ -37,7 +37,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/tags/{id}', [TagController::class, 'update']);
     Route::delete('/tags/{id}', [TagController::class, 'destroy']);
 
-
     // Categories
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::patch('/categories/{category}', [CategoryController::class, 'update']);

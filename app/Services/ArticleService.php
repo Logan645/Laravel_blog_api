@@ -9,6 +9,8 @@ use InvalidArgumentException;
 use Illuminate\Support\Facades\Auth;
 use App\Repositories\ArticleRepository;
 use Illuminate\Support\Facades\Validator;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Http\Controllers\ArticleController;
 use Illuminate\Contracts\Pagination\Paginator;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -74,5 +76,27 @@ class ArticleService
     public function syncTags(Article $article, array $tags): void
     {
         $article->tags()->sync($tags);
+    }
+
+    public function exportArticles(): string
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setCellValue('A1', 'id');
+        $sheet->setCellValue('B1', 'title');
+        $sheet->setCellValue('C1', 'body');
+        $sheet->setCellValue('D1', 'tags');
+        $articles = $this->articleRepository->getAllArticles();
+        $row = 2;
+        foreach ($articles as $article){
+            $sheet->setCellValue('A'.$row, $article->id);
+            $sheet->setCellValue('B'.$row, $article->title);
+            $sheet->setCellValue('C'.$row, $article->body);
+            $sheet->setCellValue('D'.$row, $article->tags->pluck('id')->join(','));
+            $row++;
+        }
+        $writer = new Xlsx($spreadsheet);
+        $writer->save('articles.xlsx');
+        return 'articles.xlsx';
     }
 }

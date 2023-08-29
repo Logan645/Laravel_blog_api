@@ -20,6 +20,7 @@ use App\Http\Requests\ArticleTagSyncRequest;
 use App\Http\Requests\ArticleTagsAttachRequest;
 use App\Http\Requests\ArticleTagsDetachRequest;
 use Illuminate\Auth\Access\AuthorizationException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ArticleController extends Controller
 {
@@ -85,32 +86,17 @@ class ArticleController extends Controller
 
     }
     //輸出成excel
-    public function export()
+    public function export(): JsonResponse|BinaryFileResponse
     {
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        $sheet->setCellValue('A1', 'id');
-        $sheet->setCellValue('B1', 'title');
-        $sheet->setCellValue('C1', 'body');
-        $sheet->setCellValue('D1', 'tags');
-
-        $articles = Article::get();
-        $row = 2;
-
-        foreach($articles as $article){
-            $sheet->setCellValue('A'.$row, $article->id);
-            $sheet->setCellValue('B'.$row, $article->title);
-            $sheet->setCellValue('C'.$row, $article->body);
-            $sheet->setCellValue('D'.$row, $article->tags->pluck('id')->join(',')); //pluck是collection方法
-            $row++;
+        try {
+            $filePath = $this->articleService->exportArticles();
+            return response()->download($filePath);
+        } catch (\Exception $e) {
+            return $this->responseError(null, $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-        $writer = new Xlsx($spreadsheet);
-        $writer->save('articles.xlsx');
-        return response()->download('articles.xlsx');
     }
 
-    public function attachTags(Article $article, ArticleTagsAttachRequest $request)
+    public function attachTags(Article $article, ArticleTagsAttachRequest $request): JsonResponse
     {
         try {
             if (Gate::denies('update-article', $article)){
@@ -124,7 +110,7 @@ class ArticleController extends Controller
         }
     }
     //detachTags
-    public function detachTags(Article $article, ArticleTagsDetachRequest $request)
+    public function detachTags(Article $article, ArticleTagsDetachRequest $request): JsonResponse
     {
         try {
             if (Gate::denies('update-article', $article)){
@@ -138,7 +124,7 @@ class ArticleController extends Controller
         }
     }
     //syncTags
-    public function syncTags(Article $article, ArticleTagSyncRequest $request)
+    public function syncTags(Article $article, ArticleTagSyncRequest $request): JsonResponse
     {
         try {
             if (Gate::denies('update-article', $article)){
